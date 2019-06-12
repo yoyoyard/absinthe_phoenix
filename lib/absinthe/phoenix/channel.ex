@@ -14,7 +14,17 @@ defmodule Absinthe.Phoenix.Channel do
   end
 
   @doc false
-  def join("__absinthe__:control", _, socket) do
+  def join(channel, payload, socket) do
+    cast_channel = String.split(channel, ":")
+    handle_join(cast_channel, payload, socket)
+  end
+
+  @doc false
+  def handle_join(["__absinthe__", "control"], payload, socket) do
+    handle_join(["__absinthe__", nil, "control"], payload, socket)
+  end
+
+  def handle_join(["__absinthe__", scope, "control"], _, socket) do
     schema = socket.assigns[:__absinthe_schema__]
     pipeline = socket.assigns[:__absinthe_pipeline__]
 
@@ -26,6 +36,7 @@ defmodule Absinthe.Phoenix.Channel do
       |> Keyword.update(:context, %{pubsub: socket.endpoint}, fn context ->
         Map.put_new(context, :pubsub, socket.endpoint)
       end)
+      |> Keyword.put(:scope, scope)
 
     absinthe_config =
       put_in(absinthe_config[:opts], opts)

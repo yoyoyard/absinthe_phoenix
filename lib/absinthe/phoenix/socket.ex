@@ -28,18 +28,32 @@ defmodule Absinthe.Phoenix.Socket do
   """
 
   defmacro __using__(opts) do
+    scope = Keyword.get(opts, :scope)
     schema = Keyword.get(opts, :schema)
     pipeline = Keyword.get(opts, :pipeline)
 
-    quote do
-      channel(
-        "__absinthe__:*",
-        Absinthe.Phoenix.Channel,
-        assigns: %{
-          __absinthe_schema__: unquote(schema),
-          __absinthe_pipeline__: unquote(pipeline)
-        }
-      )
+    if scope do
+      quote do
+        channel(
+          "__absinthe__:#{unquote(scope)}:*",
+          Absinthe.Phoenix.Channel,
+          assigns: %{
+            __absinthe_schema__: unquote(schema),
+            __absinthe_pipeline__: unquote(pipeline)
+          }
+        )
+      end
+    else
+      quote do
+        channel(
+          "__absinthe__:*",
+          Absinthe.Phoenix.Channel,
+          assigns: %{
+            __absinthe_schema__: unquote(schema),
+            __absinthe_pipeline__: unquote(pipeline)
+          }
+        )
+      end
     end
   end
 
